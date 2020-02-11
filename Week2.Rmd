@@ -1,0 +1,110 @@
+---
+title: "EDA"
+author: "Yanan"
+date: "2/9/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("/Users/doris/Desktop/Lactose/csv_3type")
+```
+
+## Reading data from 3 csv files
+
+```{r}
+data <- read.csv("preprocessed_Lactose tolerant.csv")
+data_in <- read.csv("preprocessed_Lactose intolerant.csv")
+data_par <- read.csv("preprocessed_Partially lactose intolerant.csv")
+```
+
+## Head of each data frames
+
+```{r data,data_par, data_in}
+head(data)
+head(data_par)
+head(data_in)
+dim(data)
+dim(data_par)
+dim(data_in)
+```
+
+## Remove Gene_Info, pct_fm, pct_nm, pct_pm columns
+### Slice SNPs and gene info
+
+```{r data, data_par, data_in}
+gene_data <- data[, 1:2]
+```
+### SLice stats of percentage for each data frame
+```{r}
+library(tidyverse)
+mute_data <- data %>% select(pct_fm, pct_nm, pct_pm)
+mute_data_par <- data_par %>% select(pct_fm, pct_nm, pct_pm)
+mute_data_in <- data_in %>% select(pct_fm, pct_nm, pct_pm)
+head(mute_data)
+head(mute_data_in)
+head(mute_data_par)
+```
+### Remove unrelative columns
+```{r}
+data = subset(data, select = -c(Gene_info, pct_fm, pct_nm, pct_pm) )
+data_par = subset(data_par, select = -c(Gene_info, pct_fm, pct_nm, pct_pm) )
+data_in = subset(data_in, select = -c(Gene_info, pct_fm, pct_nm, pct_pm) )
+head(data)
+```
+## Transpose of each data frames
+### Transpose of tolerant data frame
+
+```{r data}
+data1 <- data
+rowames <- as.vector(data1[, 1])
+data1$Rsid <- NULL
+data1_t<- as.data.frame(t(data1))
+colnames(data1_t) <- c(rowames)
+head(data1_t)
+```
+### Transpose of partially tolerant data frame
+
+```{r}
+data1_par <- data_par
+rownames <- as.vector(data1_par[, 1])
+data1_par$Rsid <- NULL
+data1_par_t<- as.data.frame(t(data1_par))
+colnames(data1_par_t) <- c(rownames)
+head(data1_par_t)
+```
+### Transpose of intolerant data frame
+
+```{r}
+data1_in <- data_in
+rownames <- as.vector(data1_in[, 1])
+data1_in$Rsid <- NULL
+data1_in_t<- as.data.frame(t(data1_in))
+colnames(data1_in_t) <- c(rownames)
+head(data1_in_t)
+```
+
+## Combine data and add another column "Tolerance" 0 as intolerant, 1 as partial, 2 as tolerant
+```{r}
+data_addCol <- data1_t
+data_parAddCol <- data1_par_t
+data_inAddCol <- data1_in_t
+data_addCol$tolerance = 2
+data_parAddCol$tolerance = 1
+data_inAddCol$tolerance = 0
+```
+```{r}
+comb <- rbind(data_parAddCol, data_inAddCol)
+comb <- rbind(data_addCol, comb)
+```
+```{r}
+head(comb)
+```
+## Analysis
+```{r}
+tempdata<- data1_in_t
+temp<- apply(tempdata, 2, function(x) length(unique(x)))
+```
+```{r}
+temp[11]
+```
