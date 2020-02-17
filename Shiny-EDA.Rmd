@@ -1,0 +1,232 @@
+---
+title: "Shiny???EDA"
+output: html_document
+---
+
+```{r}
+setwd("/Users/andy/Desktop/Spring2020/Shiny/")
+```
+
+```{r}
+dataT <- read.csv("preprocessed_Lactose Tolerant.csv")
+head(dataT)
+new_dataT <- dataT[,-2]
+new_dataT2 <- new_dataT[,-(294:296)]
+
+#write.csv(new_dataT2, "new_dataT2.csv")
+
+
+head(new_dataT)
+
+which(new_dataT$Rsid == 'rs182549')
+which(new_dataT$Rsid == 'rs41380347')
+which(new_dataT$Rsid == 'rs4988235')
+
+new_dataT2 <- rbind(new_dataT[c(226450,631809,1255061),])
+
+rownames <- as.vector(new_dataT2[, 1])
+new_dataT2$Rsid <- NULL
+
+new_dataT3 <- as.data.frame(t(new_dataT2))
+colnames(new_dataT3) <- c(rownames)
+head(new_dataT3)
+new_dataT3$class <- 0
+
+head(new_dataT3)
+
+colnames(new_dataT3)
+```
+
+
+```{r}
+
+dataI <- read.csv("preprocessed_Lactose Intolerant.csv")
+head(dataI)
+new_dataI <- dataI[,-2]
+new_dataI2 <- new_dataI[,-(80:82)]
+
+#write.csv(new_dataI2, "new_dataI2.csv")
+
+head(new_dataI2)
+
+which(new_dataI2$Rsid == 'rs182549')
+which(new_dataI2$Rsid == 'rs41380347')
+which(new_dataI2$Rsid == 'rs4988235')
+
+new_dataI2 <- rbind(new_dataI[c(226450,631809,1255061),])
+
+rownames <- as.vector(new_dataI2[, 1])
+new_dataI2$Rsid <- NULL
+
+new_dataI3 <- as.data.frame(t(new_dataI2))
+colnames(new_dataI3) <- c(rownames)
+head(new_dataI3)
+
+new_dataI3 <- as.data.frame(t(new_dataI3))
+new_dataI3$class <- 1
+head(new_dataI3)
+```
+
+
+```{r}
+dataP <- read.csv("preprocessed_Partially lactose intolerant.csv")
+head(dataP)
+new_dataP <- dataP[,-2]
+new_dataP2 <- new_dataP[,-(60:63)]
+
+#write.csv(new_dataP2, "new_dataP2.csv")
+
+
+which(new_dataP$Rsid == 'rs182549')
+which(new_dataP$Rsid == 'rs41380347')
+which(new_dataP$Rsid == 'rs4988235')
+
+new_dataP2 <- rbind(new_dataP[c(226450,631809,1255061),])
+
+rownames <- as.vector(new_dataP2[, 1])
+new_dataP2$Rsid <- NULL
+
+new_dataP3 <- as.data.frame(t(new_dataP3))
+new_dataP3$class <- 2
+head(new_dataP3)
+```
+
+```{r}
+lac_data <- rbind(new_dataI3, new_dataP3, new_dataT3)
+head(lac_data)
+
+summary(lac_data)
+
+#write.csv(lac_data, "lac_data.csv")
+```
+
+```{r} 
+
+lac_data$class[lac_data$class == '0'] <- "Lactose Tolerant"
+lac_data$class[lac_data$class == '1'] <- "Lactose Partially Intolerant"
+lac_data$class[lac_data$class == '2'] <- "Lactose Intolerant"
+
+summary(lac_data)
+lac_data$class
+
+lac_data$class <- as.factor(lac_data$class)
+summary(lac_data$class)
+
+
+
+
+class(lac_data$class)
+summary(lac_data)
+summary(lac_data$rs182549)
+
+lac_data$rs182549[lac_data$rs182549 > 2] <- NA
+summary(lac_data$rs182549)
+lac_data$rs182549 <- as.factor(lac_data$rs182549)
+summary(lac_data$rs182549)
+
+
+summary(lac_data$rs41380347)
+lac_data$rs41380347[lac_data$rs41380347 > 2] <- NA
+lac_data$rs41380347 <- as.factor(lac_data$rs41380347)
+summary(lac_data$rs41380347)
+
+summary(lac_data$rs4988235)
+
+lac_data$rs4988235[lac_data$rs4988235 > 2] <- NA
+lac_data$rs4988235 <- as.factor(lac_data$rs4988235)
+
+summary(lac_data$rs4988235)
+
+summary(lac_data)
+
+```
+
+```{r}
+#Visualization: 
+
+library(ggplot2)
+
+g <- ggplot(data = lac_data)
+
+g + geom_bar(aes(x = class) , position = "dodge") 
+  + 
+
+```
+
+```{r}
+g <- ggplot(data = na.omit(lac_data))
+
+g + geom_bar(aes(x = class, fill = rs182549), position = "dodge") 
+
+```
+
+```{r}
+g + geom_bar(aes(x = class, fill = rs41380347), position = "dodge")
+```
+
+```{r}
+g + geom_bar(aes(x = class, fill = rs4988235), position = "dodge")
+```
+
+```{r}
+summary(lac_data$class)
+
+lac_data1 <- lac_data
+summary(lac_data1$class)
+
+keep <- which(lac_data1$class == "Lactose Partially Intolerant")
+
+lac_data1$class[keep] <- "Lactose Intolerant"
+
+#lac_data1$class[lac_data1$class == 'Lactose Partially Intolerant'] <- 'Lactose Intolerant'
+
+
+lac_data1 <- lac_data1[lac_data1$class != "Lactose Partially Intolerant", , drop = FALSE] 
+
+lac_data1$class <- factor(lac_data1$class)
+
+summary(lac_data1$class)
+
+summary(lac_data1)
+
+lac_data2 <- subset(na.omit(lac_data1))
+
+summary(lac_data2)
+
+```
+
+```{r}
+#install.packages("rpart.plot")
+library (dplyr)
+library(caret)
+library(rpart.plot)
+library(e1071)
+library(randomForest)
+library(ISLR)
+library(pscl)
+
+intrain <- createDataPartition(y = lac_data1$class, p= 0.75, list = FALSE)
+training <- lac_data1[intrain,]
+testing <- lac_data1[-intrain,]
+dim(intrain); dim(training); dim(testing)
+
+trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+
+dtree_fit <- train(class ~., subset(lac_data2), method = "rpart",
+                   parms = list(split = "information"),
+                   trControl=trctrl,
+                   tuneLength = 10)
+
+dtree_fit
+
+plot(dtree_fit$finalModel)
+text(dtree_fit$finalModel) 
+
+prp(dtree_fit$finalModel, box.palette = "Blues")
+
+test_pred_dtree <- predict(dtree_fit, newdata = testing)
+test_pred_dtree
+
+confusionMatrix(test_pred_dtree, testing$class)
+
+```
